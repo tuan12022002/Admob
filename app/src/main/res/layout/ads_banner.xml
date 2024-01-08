@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootBanner"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <FrameLayout
+        android:id="@+id/bannerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+    <FrameLayout
+        android:id="@+id/frLoadAdsBanner"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent">
+        <include layout="@layout/ads_banner_shimmer" />
+    </FrameLayout>
+</RelativeLayout>

@@ -1,0 +1,22 @@
+<resources>
+    <string name="app_name">Admob</string>
+    <string name="loading_ads">Loading Ads…</string>
+
+    <array name="banner">
+        <item>ca-app-pub-3940256099942544/6300978111</item>
+        <item>ca-app-pub-3940256099942544/6300978111</item>
+        <item>ca-app-pub-3940256099942544/6300978111</item>
+    </array>
+
+    <array name="splash">
+        <item>ca-app-pub-3940256099942544/1033173712</item>
+        <item>ca-app-pub-3940256099942544/1033173712</item>
+        <item>ca-app-pub-3940256099942544/1033173712</item>
+    </array>
+
+    <array name="inter">
+        <item>ca-app-pub-3940256099942544/1033173712</item>
+        <item>ca-app-pub-3940256099942544/1033173712</item>
+        <item>ca-app-pub-3940256099942544/1033173712</item>
+    </array>
+</resources>
