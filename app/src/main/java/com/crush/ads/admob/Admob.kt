@@ -13,6 +13,9 @@ import android.view.Display
 import android.view.View
 import android.webkit.WebView
 import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.RatingBar
+import android.widget.TextView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.crush.ads.admob.callback.InterCallback
@@ -25,7 +28,9 @@ import com.google.android.gms.ads.*
 import com.google.android.gms.ads.formats.NativeAdOptions
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
+import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import kotlinx.coroutines.*
@@ -530,6 +535,107 @@ class Admob private constructor() {
                 .build()
             adLoader.loadAd(Util.getAdRequest())
         }
+    }
+
+    fun pushAdsToViewCustom(nativeAd :NativeAd?, nativeAdView: NativeAdView?){
+        try {
+            nativeAdView?.mediaView = nativeAdView?.findViewById(R.id.ad_media)
+            nativeAdView?.headlineView = nativeAdView?.findViewById(R.id.ad_headline)
+            nativeAdView?.bodyView = nativeAdView?.findViewById(R.id.ad_body)
+            nativeAdView?.callToActionView = nativeAdView?.findViewById(R.id.ad_call_to_action)
+            nativeAdView?.iconView = nativeAdView?.findViewById(R.id.ad_app_icon)
+            nativeAdView?.advertiserView = nativeAdView?.findViewById(R.id.ad_advertiser)
+        }catch (e : Exception){
+            e.printStackTrace()
+        }
+
+        try {
+            (nativeAdView?.headlineView as? TextView)?.text = nativeAd?.headline
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        try {
+            if (nativeAd?.body == null) {
+                nativeAdView?.bodyView?.visibility = View.INVISIBLE
+            } else {
+                nativeAdView?.bodyView?.visibility = View.VISIBLE
+                (nativeAdView?.bodyView as? TextView)?.text = nativeAd.body
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        try {
+            if (nativeAd?.callToAction == null) {
+                nativeAdView?.callToActionView?.visibility = View.INVISIBLE
+            } else {
+                nativeAdView?.callToActionView?.visibility = View.VISIBLE
+                (nativeAdView?.callToActionView as? TextView)?.text = nativeAd.callToAction
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        try {
+            if (nativeAd?.icon == null) {
+                nativeAdView?.iconView?.visibility = View.GONE
+            } else {
+                (nativeAdView?.iconView as? ImageView)?.setImageDrawable(nativeAd.icon?.drawable)
+                nativeAdView?.iconView?.visibility = View.VISIBLE
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        try {
+            if (nativeAd?.price == null) {
+                nativeAdView?.priceView?.visibility = View.INVISIBLE
+            } else {
+                nativeAdView?.priceView?.visibility = View.VISIBLE
+                (nativeAdView?.priceView as? TextView)?.text = nativeAd.price
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        try {
+            if (nativeAd?.store == null) {
+                nativeAdView?.storeView?.visibility = View.INVISIBLE
+            } else {
+                nativeAdView?.storeView?.visibility = View.VISIBLE
+                (nativeAdView?.storeView as? TextView)?.text = nativeAd.store
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        try {
+            if (nativeAd?.starRating == null) {
+                nativeAdView?.starRatingView?.visibility = View.INVISIBLE
+            } else {
+                (nativeAdView?.starRatingView as? RatingBar)?.rating = nativeAd.starRating?.toFloat()?:0F
+                nativeAdView?.starRatingView?.visibility = View.VISIBLE
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        try {
+            if (nativeAd?.advertiser == null) {
+                nativeAdView?.advertiserView?.visibility = View.INVISIBLE
+            } else {
+                (nativeAdView?.advertiserView as? TextView)?.text = nativeAd.advertiser
+                nativeAdView?.advertiserView?.visibility = View.VISIBLE
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        nativeAd?.let {
+            nativeAdView?.setNativeAd(nativeAd)
+        }
+
     }
 
     // ---------------------------------------- End load and show native ----------------------------------------
