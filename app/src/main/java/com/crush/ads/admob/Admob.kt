@@ -28,7 +28,6 @@ import com.google.android.gms.ads.*
 import com.google.android.gms.ads.formats.NativeAdOptions
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
-import com.google.android.gms.ads.nativead.MediaView
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.gms.ads.rewarded.RewardedAd
@@ -529,6 +528,7 @@ class Admob private constructor() {
                     override fun onAdClicked() {
                         super.onAdClicked()
                         nativeCallback?.onAdClicked()
+                        AppOpenManager.getInstance().isUserClickAds = true
                     }
                 })
                 .withNativeAdOptions(adOptions)
