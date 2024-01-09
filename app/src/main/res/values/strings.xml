@@ -2,21 +2,33 @@
     <string name="app_name">Admob</string>
     <string name="loading_ads">Loading Ads…</string>
 
-    <array name="banner">
+    <array name="ads_banner">
         <item>ca-app-pub-3940256099942544/6300978111</item>
         <item>ca-app-pub-3940256099942544/6300978111</item>
         <item>ca-app-pub-3940256099942544/6300978111</item>
     </array>
 
-    <array name="splash">
+    <array name="ads_splash">
         <item>ca-app-pub-3940256099942544/1033173712</item>
         <item>ca-app-pub-3940256099942544/1033173712</item>
         <item>ca-app-pub-3940256099942544/1033173712</item>
     </array>
 
-    <array name="inter">
+    <array name="ads_inter">
         <item>ca-app-pub-3940256099942544/1033173712</item>
         <item>ca-app-pub-3940256099942544/1033173712</item>
         <item>ca-app-pub-3940256099942544/1033173712</item>
+    </array>
+
+    <array name="ads_native">
+        <item>ca-app-pub-3940256099942544/2247696110</item>
+        <item>ca-app-pub-3940256099942544/2247696110</item>
+        <item>ca-app-pub-3940256099942544/2247696110</item>
+    </array>
+
+    <array name="ads_rewarded">
+        <item>ca-app-pub-3940256099942544/5224354917</item>
+        <item>ca-app-pub-3940256099942544/5224354917</item>
+        <item>ca-app-pub-3940256099942544/5224354917</item>
     </array>
 </resources>

@@ -5,6 +5,8 @@ import android.app.Application
 import android.content.Context
 import android.content.res.Resources
 import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.Display
@@ -14,12 +16,18 @@ import android.widget.FrameLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
 import com.crush.ads.admob.callback.InterCallback
+import com.crush.ads.admob.callback.NativeCallback
+import com.crush.ads.admob.callback.RewardCallback
 import com.crush.ads.admob.dialog.LoadingAdsDialog
 import com.crush.ads.admob.util.Util
 import com.facebook.shimmer.ShimmerFrameLayout
 import com.google.android.gms.ads.*
+import com.google.android.gms.ads.formats.NativeAdOptions
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.nativead.NativeAd
+import com.google.android.gms.ads.rewarded.RewardedAd
+import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import kotlinx.coroutines.*
 import java.lang.ref.WeakReference
 
@@ -207,8 +215,8 @@ class Admob private constructor() {
             }
 
             if (ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+                adsJobMainSplash?.cancel()
                 adsJobMainSplash = adsCoroutineScopeMainSplash.launch {
-
                     if (dialogLoadingAds?.isShowing != true) {
                         dismiss()
                         show(context)
@@ -329,6 +337,8 @@ class Admob private constructor() {
 
     // ---------------------------------------- Start load and show inter ----------------------------------------
 
+    var isOpenActivityAfterShowInterAds = true
+
     fun loadInter(context: Context, listIdInter: MutableList<String>, interCallback: InterCallback?){
         if (listIdInter.size == 0 || !Util.isNetworkAvailable(context)) {
             interCallback?.onAdFailedToLoad(null)
@@ -356,20 +366,29 @@ class Admob private constructor() {
 
     fun showInter(context: Context, interstitialAd: InterstitialAd?, interCallback: InterCallback?){
         if(interstitialAd == null){
+            interCallback?.onAdClosed()
             interCallback?.onNextAction()
         }else{
 
             interstitialAd.fullScreenContentCallback = object : FullScreenContentCallback() {
                 override fun onAdDismissedFullScreenContent() {
                     super.onAdDismissedFullScreenContent()
+                    if(!isOpenActivityAfterShowInterAds){
+                        interCallback?.onAdClosed()
+                        interCallback?.onNextAction()
+                    }
+                    dismiss()
+                    AppOpenManager.getInstance().isUserDismissAppOpen = true
                 }
 
-                override fun onAdShowedFullScreenContent() {
-                    super.onAdShowedFullScreenContent()
-                }
-
-                override fun onAdFailedToShowFullScreenContent(p0: AdError) {
-                    super.onAdFailedToShowFullScreenContent(p0)
+                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                    super.onAdFailedToShowFullScreenContent(adError)
+                    if(!isOpenActivityAfterShowInterAds){
+                        interCallback?.onAdClosed()
+                        interCallback?.onNextAction()
+                    }
+                    AppOpenManager.getInstance().isUserDismissAppOpen = true
+                    dismiss()
                 }
 
                 override fun onAdClicked() {
@@ -377,6 +396,142 @@ class Admob private constructor() {
                     AppOpenManager.getInstance().isUserClickAds = true
                 }
             }
+
+            if (ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
+
+                AppOpenManager.getInstance().isUserDismissAppOpen = false
+                if (dialogLoadingAds?.isShowing != true) {
+                    dismiss()
+                    show(context)
+                }
+
+                Handler(Looper.getMainLooper()).postDelayed({
+                    if(isOpenActivityAfterShowInterAds){
+                        interCallback?.onAdClosed()
+                        interCallback?.onNextAction()
+                    }
+
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        dismiss()
+                    }, 500)
+
+                    interstitialAd.show(context as Activity)
+                }, 500)
+            } else {
+                interCallback?.onAdClosed()
+                interCallback?.onNextAction()
+                dismiss()
+            }
+
         }
     }
+    // ---------------------------------------- End load and show inter ----------------------------------------
+
+    // ---------------------------------------- Start load and show reward ----------------------------------------
+
+    private var rewardedAd: RewardedAd? = null
+    fun loadReward(context: Context, listIdReward:MutableList<String>){
+        if (listIdReward.size == 0 || !Util.isNetworkAvailable(context)) {
+            rewardedAd = null
+        }else{
+            RewardedAd.load(context, listIdReward[0], Util.getAdRequest(), object : RewardedAdLoadCallback() {
+                override fun onAdLoaded(rewardedAd: RewardedAd) {
+                    super.onAdLoaded(rewardedAd)
+                    getInstance().rewardedAd = rewardedAd
+                    getInstance().rewardedAd?.setOnPaidEventListener {  }
+                }
+
+                override fun onAdFailedToLoad(p0: LoadAdError) {
+                    super.onAdFailedToLoad(p0)
+                    listIdReward.removeAt(0)
+                    if (listIdReward.size > 0) {
+                        loadReward(context, listIdReward)
+                    }else{
+                        rewardedAd = null
+                    }
+                }
+            })
+        }
+    }
+
+    fun showReward(context: Context, listIdReward:MutableList<String>,rewardCallback: RewardCallback?){
+        if (!Util.isNetworkAvailable(context)) {
+            rewardCallback?.onAdClosed()
+        }else{
+            rewardedAd?.fullScreenContentCallback = object :FullScreenContentCallback(){
+                override fun onAdDismissedFullScreenContent() {
+                    super.onAdDismissedFullScreenContent()
+                    rewardCallback?.onAdClosed()
+                    AppOpenManager.getInstance().isUserDismissAppOpen = true
+                }
+
+                override fun onAdShowedFullScreenContent() {
+                    super.onAdShowedFullScreenContent()
+                    AppOpenManager.getInstance().isUserDismissAppOpen = false
+                    rewardedAd = null
+                    loadReward(context, listIdReward)
+                }
+
+                override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                    super.onAdFailedToShowFullScreenContent(adError)
+                    rewardCallback?.onAdFailedToShow(adError.code)
+                }
+
+                override fun onAdClicked() {
+                    super.onAdClicked()
+                    AppOpenManager.getInstance().isUserClickAds = true
+                }
+            }
+
+            rewardedAd?.show(context as Activity) { rewardItem ->
+                rewardCallback?.onEarnedReward(rewardItem)
+            }
+        }
+    }
+    // ---------------------------------------- End load and show reward ----------------------------------------
+
+    // ---------------------------------------- Start load and show native ----------------------------------------
+
+    fun loadNative(context: Context, listIdNative:MutableList<String>, nativeCallback: NativeCallback?){
+        if (listIdNative.size == 0 || !Util.isNetworkAvailable(context)) {
+            nativeCallback?.onAdFailedToLoad()
+        }else{
+            val videoOptions = VideoOptions.Builder()
+                .setStartMuted(true)
+                .build()
+
+            val adOptions = NativeAdOptions.Builder()
+                .setVideoOptions(videoOptions)
+                .build()
+
+            val adLoader = AdLoader.Builder(context, listIdNative[0])
+                .forNativeAd { nativeAd ->
+                    nativeCallback?.onNativeAdLoaded(nativeAd)
+                    nativeAd.setOnPaidEventListener { adValue ->
+                        nativeCallback?.onEarnRevenue(adValue.valueMicros.toDouble())
+                    }
+                }
+                .withAdListener(object : AdListener() {
+                    override fun onAdFailedToLoad(error: LoadAdError) {
+                        listIdNative.removeAt(0)
+                        if (listIdNative.size > 0) {
+                            loadNative(context, listIdNative, nativeCallback)
+                        }else{
+                            nativeCallback?.onAdFailedToLoad()
+                        }
+                    }
+
+                    override fun onAdClicked() {
+                        super.onAdClicked()
+                        nativeCallback?.onAdClicked()
+                    }
+                })
+                .withNativeAdOptions(adOptions)
+                .build()
+            adLoader.loadAd(Util.getAdRequest())
+        }
+    }
+
+    // ---------------------------------------- End load and show native ----------------------------------------
+
 }

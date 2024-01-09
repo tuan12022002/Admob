@@ -33,6 +33,7 @@ class AppOpenManager : Application.ActivityLifecycleCallbacks, LifecycleObserver
     private var appResumeAd: AppOpenAd? = null
     var isUserDismissAppOpen = true
     var isUserClickAds = false
+    private var isShowAdsResume = false
 
     private var dialogLoadingAds: LoadingAdsDialog? = null
 
@@ -81,7 +82,6 @@ class AppOpenManager : Application.ActivityLifecycleCallbacks, LifecycleObserver
     override fun onActivityResumed(activity: Activity) {
         this.activity = WeakReference(activity)
         if (activity::class.java.name != AdActivity::class.java.name) {
-            Log.e("kh45", "Show")
             loadAdsAppOpenManager()
         }
     }
@@ -105,6 +105,7 @@ class AppOpenManager : Application.ActivityLifecycleCallbacks, LifecycleObserver
     @OnLifecycleEvent(Lifecycle.Event.ON_START)
     fun onResume() {
         if(!checkShowAppOpen()){
+            Log.e("kh45", "Show")
             ads()
         }else{
             isUserClickAds = false
@@ -127,7 +128,7 @@ class AppOpenManager : Application.ActivityLifecycleCallbacks, LifecycleObserver
     }
 
     private fun checkShowAppOpen():Boolean{
-        return checkUserDismissAppOpen() || checkUserOnClickAds() || !isUserDismissAppOpen
+        return checkUserDismissAppOpen() || checkUserOnClickAds() || !isUserDismissAppOpen || isShowAdsResume
     }
 
     private fun loadAdsAppOpenManager() {
@@ -158,6 +159,17 @@ class AppOpenManager : Application.ActivityLifecycleCallbacks, LifecycleObserver
         }
     }
 
+    fun resetLoadAppOpen(){
+        getInstance().appResumeAd = null
+        checkLoadResume = false
+    }
+
+    fun successAppOpen(){
+        isShowAdsResume = false
+        loadAdsAppOpenManager()
+        dismiss()
+    }
+
     fun ads(){
         activity.let {
             appResumeAd?.let { appResumeAd ->
@@ -167,29 +179,24 @@ class AppOpenManager : Application.ActivityLifecycleCallbacks, LifecycleObserver
                         override fun onAdDismissedFullScreenContent() {
                             super.onAdDismissedFullScreenContent()
 
-                            getInstance().appResumeAd = null
-                            checkLoadResume = false
-                            loadAdsAppOpenManager()
-                            dismiss()
+                          successAppOpen()
                         }
 
                         override fun onAdShowedFullScreenContent() {
                             super.onAdShowedFullScreenContent()
-                            getInstance().appResumeAd = null
-                            checkLoadResume = false
+                            resetLoadAppOpen()
                         }
 
                         override fun onAdFailedToShowFullScreenContent(adError: AdError) {
                             super.onAdFailedToShowFullScreenContent(adError)
-                            getInstance().appResumeAd = null
-                            checkLoadResume = false
-                            loadAdsAppOpenManager()
-                            dismiss()
+                            successAppOpen()
                         }
                     }
                     activity?.get()?.let { activity ->
+                        adsJobMainAppOpen?.cancel()
                         adsJobMainAppOpen = adsCoroutineScopeMainAppOpen.launch {
                             delay(500)
+                            isShowAdsResume = true
                             appResumeAd.show(activity)
                         }
 
