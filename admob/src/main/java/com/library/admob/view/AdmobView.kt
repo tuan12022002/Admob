@@ -2,6 +2,7 @@ package com.library.admob.view
 
 import android.content.Context
 import android.util.AttributeSet
+import android.widget.FrameLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.library.admob.R
 
@@ -21,6 +22,18 @@ class AdmobView @JvmOverloads constructor(
     init {
         // Inflate layout từ file R.layout.admob_loading và thêm vào AdmobView hiện tại.
         inflate(context, R.layout.admob_loading, this)
+
+        // Thêm một FrameLayout ở dưới cùng
+        val frAds = FrameLayout(context).apply {
+            id = R.id.frAds
+            layoutParams =
+                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
+                    bottomToBottom = LayoutParams.PARENT_ID
+                    startToStart = LayoutParams.PARENT_ID
+                    endToEnd = LayoutParams.PARENT_ID
+                }
+        }
+        addView(frAds)
     }
 }
 

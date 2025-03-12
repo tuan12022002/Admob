@@ -3,15 +3,27 @@ package com.library.admob.activity
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.ImageView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import com.facebook.shimmer.ShimmerFrameLayout
 import com.google.android.gms.ads.AdError
+import com.google.android.gms.ads.AdListener
+import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.VideoOptions
 import com.google.android.gms.ads.appopen.AppOpenAd
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.gms.ads.nativead.NativeAd
+import com.google.android.gms.ads.nativead.NativeAdOptions
+import com.google.android.gms.ads.nativead.NativeAdView
 import com.google.android.gms.ads.rewarded.RewardedAd
 import com.google.android.gms.ads.rewarded.RewardedAdLoadCallback
 import com.google.android.material.card.MaterialCardView
@@ -652,4 +664,171 @@ open class AdmobActivity : AppCompatActivity() {
         handleLoadingView = null
         super.onDestroy()
     }
+
+    // ---------------------------------------- Start load and show native ----------------------------------------
+
+    fun onNativeAdLoaded() {
+
+    }
+
+    fun onNativeAdFailedToLoad(adError: LoadAdError) {
+
+    }
+
+    fun onNativeAdOpened() {
+
+    }
+
+    fun onNativeAdClicked() {
+
+    }
+
+    fun onNativeAdImpression() {
+
+    }
+
+    fun onNativeAdClosed() {
+
+    }
+
+
+    /**
+     * Hàm loadNative hiển thị hiệu ứng shimmer, tải quảng cáo native và bind dữ liệu vào view.
+     */
+    fun loadNative(idNativeAd: String, nativeLayout: Int, nativeShimmer: Int) {
+        // Lấy container chứa quảng cáo, đảm bảo không null
+        val frAds = findViewById<FrameLayout>(R.id.frAds) ?: return
+        frAds.visibility = View.VISIBLE
+
+        // Inflate view hiệu ứng shimmer khi đang tải quảng cáo
+        val shimmerView =
+            LayoutInflater.from(this).inflate(nativeShimmer, null) as ShimmerFrameLayout
+        shimmerView.startShimmer()
+        frAds.removeAllViews()
+        frAds.addView(shimmerView)
+
+        // Tạo AdLoader để tải quảng cáo native
+        val adLoader = AdLoader.Builder(this, idNativeAd)
+            .forNativeAd { nativeAd ->
+                // Kiểm tra xem Activity có còn hợp lệ để cập nhật UI không
+                if (isFinishing || isDestroyed) {
+                    nativeAd.destroy()
+                    return@forNativeAd
+                }
+                // Inflate layout native ad, đảm bảo ép kiểu thành NativeAdView
+                val adView = LayoutInflater.from(this).inflate(nativeLayout, null) as? NativeAdView
+                if (adView == null) {
+                    nativeAd.destroy()
+                    return@forNativeAd
+                }
+                // Dừng hiệu ứng shimmer
+                shimmerView.stopShimmer()
+                frAds.removeAllViews()
+                // Thêm NativeAdView vào container
+                frAds.addView(adView)
+                // Bind dữ liệu quảng cáo vào layout
+                bindNativeAdToView(nativeAd, adView)
+            }
+            .withAdListener(object : AdListener() {
+                override fun onAdLoaded() {
+                    onNativeAdLoaded()
+                }
+
+                override fun onAdFailedToLoad(adError: LoadAdError) {
+                    onNativeAdFailedToLoad(adError)
+                    // Dừng hiệu ứng shimmer và ẩn container nếu không tải được quảng cáo
+                    shimmerView.stopShimmer()
+                    frAds.removeAllViews()
+                    frAds.visibility = View.GONE
+                }
+
+                override fun onAdOpened() {
+                    onNativeAdOpened()
+                }
+
+                override fun onAdClicked() {
+                    onNativeAdClicked()
+                }
+
+                override fun onAdImpression() {
+                    onNativeAdImpression()
+                }
+
+                override fun onAdClosed() {
+                    onNativeAdClosed()
+                }
+            })
+            .withNativeAdOptions(
+                NativeAdOptions.Builder()
+                    .setVideoOptions(VideoOptions.Builder().setStartMuted(true).build())
+                    .build()
+            )
+            .build()
+
+        // Tải quảng cáo với AdRequest
+        adLoader.loadAd(AdRequest.Builder().build())
+    }
+
+    /**
+     * Hàm bindNativeAdToView ánh xạ dữ liệu của NativeAd vào các view trong NativeAdView.
+     */
+    private fun bindNativeAdToView(nativeAd: NativeAd, nativeAdView: NativeAdView) {
+        // Ánh xạ các view theo ID đã định nghĩa trong layout native_ad_layout.xml
+        nativeAdView.mediaView = nativeAdView.findViewById(R.id.ad_media)
+        nativeAdView.headlineView = nativeAdView.findViewById(R.id.ad_headline)
+        nativeAdView.bodyView = nativeAdView.findViewById(R.id.ad_body)
+        nativeAdView.callToActionView = nativeAdView.findViewById(R.id.ad_call_to_action)
+        nativeAdView.iconView = nativeAdView.findViewById(R.id.ad_app_icon)
+        nativeAdView.advertiserView = nativeAdView.findViewById(R.id.ad_advertiser)
+
+        // Cập nhật dữ liệu tiêu đề quảng cáo
+        (nativeAdView.headlineView as? TextView)?.text = nativeAd.headline
+
+        // Cập nhật dữ liệu nội dung quảng cáo (body)
+        (nativeAdView.bodyView as? TextView)?.apply {
+            if (nativeAd.body.isNullOrEmpty()) {
+                visibility = View.INVISIBLE
+            } else {
+                visibility = View.VISIBLE
+                text = nativeAd.body
+            }
+        }
+
+        // Cập nhật dữ liệu nút Call to Action
+        (nativeAdView.callToActionView as? Button)?.apply {
+            if (nativeAd.callToAction.isNullOrEmpty()) {
+                visibility = View.INVISIBLE
+            } else {
+                visibility = View.VISIBLE
+                text = nativeAd.callToAction
+            }
+        }
+
+        // Cập nhật hình ảnh icon
+        (nativeAdView.iconView as? ImageView)?.apply {
+            if (nativeAd.icon == null) {
+                visibility = View.GONE
+            } else {
+                visibility = View.VISIBLE
+                setImageDrawable(nativeAd.icon?.drawable)
+            }
+        }
+
+        // Cập nhật dữ liệu nhà quảng cáo (advertiser)
+        (nativeAdView.advertiserView as? TextView)?.apply {
+            if (nativeAd.advertiser.isNullOrEmpty()) {
+                visibility = View.INVISIBLE
+            } else {
+                visibility = View.VISIBLE
+                text = nativeAd.advertiser
+            }
+        }
+
+        // Cuối cùng, đăng ký NativeAd vào NativeAdView
+        nativeAdView.setNativeAd(nativeAd)
+    }
+
+
+    // ---------------------------------------- End load and show native ----------------------------------------
+
 }

@@ -9,6 +9,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.android.gms.ads.MobileAds
 import com.library.admob.Admob
 import com.library.admob.activity.AdmobActivity
+import com.library.admob.utlis.Constant
 
 class MainActivity : AdmobActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +29,12 @@ class MainActivity : AdmobActivity() {
             }
         }
 
-        //Admob.disableAppResumeWithActivity(this::class.java)
+        Admob.disableAppResumeWithActivity(this::class.java)
+        loadNative(
+            idNativeAd = Constant.ID_NATIVE_AD,
+            nativeLayout = R.layout.ads_native_large,
+            nativeShimmer = R.layout.ads_native_large_shimmer
+        )
     }
 
 }

@@ -14,6 +14,11 @@ object Constant {
     // ID cho quảng cáo App Open, dùng để tải quảng cáo khi mở ứng dụng.
     const val ID_APP_OPEN_AD = "ca-app-pub-3940256099942544/9257395921"
 
+
+    const val ID_NATIVE_AD = "ca-app-pub-3940256099942544/2247696110"
+
+    const val ID_BANNER_AD = "ca-app-pub-3940256099942544/6300978111"
+
     // Số lần tối đa thử tải quảng cáo trước khi dừng quá trình tải.
     const val MAX_LOADING_ADS = 3
 }

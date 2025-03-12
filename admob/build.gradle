@@ -64,7 +64,7 @@ dependencies {
     // Ads
     implementation(libs.play.services.ads)
     // Shimmer
-    implementation 'io.supercharge:shimmerlayout:2.1.0'
+    //implementation 'io.supercharge:shimmerlayout:2.1.0'
     // Ump
     implementation("com.google.android.ump:user-messaging-platform:3.1.0")
     // Shimmer
