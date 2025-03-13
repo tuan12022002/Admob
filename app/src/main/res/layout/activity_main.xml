@@ -5,17 +5,39 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/white"
     tools:context=".MainActivity">
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/tvTest"
-        android:layout_width="150dp"
-        android:layout_height="60dp"
-        android:text="Show inter!"
-        app:cardBackgroundColor="@color/black"
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
         app:layout_constraintBottom_toTopOf="@+id/frAds"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <Button
+            android:id="@+id/btnInter"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:text="Show inter!"
+            app:cardBackgroundColor="@color/black" />
+
+        <Button
+            android:id="@+id/btnAppOpen"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:text="Show app open!"
+            app:cardBackgroundColor="@color/black" />
+
+        <Button
+            android:id="@+id/btnReward"
+            android:layout_width="150dp"
+            android:layout_height="60dp"
+            android:text="Show reward!"
+            app:cardBackgroundColor="@color/black" />
+    </LinearLayout>
+
 
 </com.library.admob.view.AdmobView>

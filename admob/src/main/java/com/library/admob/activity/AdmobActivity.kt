@@ -1,8 +1,12 @@
 package com.library.admob.activity
 
+import android.app.Activity
+import android.content.res.Resources
 import android.os.Handler
 import android.os.Looper
+import android.util.DisplayMetrics
 import android.util.Log
+import android.view.Display
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.Button
@@ -15,6 +19,8 @@ import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.AdSize
+import com.google.android.gms.ads.AdView
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.VideoOptions
@@ -699,6 +705,10 @@ open class AdmobActivity : AppCompatActivity() {
         // Lấy container chứa quảng cáo, đảm bảo không null
         val frAds = findViewById<FrameLayout>(R.id.frAds) ?: return
         frAds.visibility = View.VISIBLE
+        val viewLine = findViewById<View>(R.id.viewTopLine) ?: return
+        viewLine.visibility = View.GONE
+        val viewBottomLine = findViewById<View>(R.id.viewBottomLine) ?: return
+        viewBottomLine.visibility = View.GONE
 
         // Inflate view hiệu ứng shimmer khi đang tải quảng cáo
         val shimmerView =
@@ -828,7 +838,73 @@ open class AdmobActivity : AppCompatActivity() {
         nativeAdView.setNativeAd(nativeAd)
     }
 
-
     // ---------------------------------------- End load and show native ----------------------------------------
+
+    // ---------------------------------------- Start load and show banner ----------------------------------------
+
+    private fun getAdSize(activity: Activity): AdSize {
+        val display: Display = activity.windowManager.defaultDisplay
+        val outMetrics = DisplayMetrics()
+        display.getMetrics(outMetrics)
+
+        val widthPixels: Float = outMetrics.widthPixels.toFloat()
+        val density: Float = outMetrics.density
+
+        val adWidth: Int = (widthPixels / density).toInt()
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth)
+    }
+
+    fun loadBanner(idBannerAd: String = Constant.ID_BANNER_AD) {
+        try {
+            val frAds = findViewById<FrameLayout>(R.id.frAds) ?: return
+            val viewTopLine = findViewById<View>(R.id.viewTopLine) ?: return
+            viewTopLine.visibility = View.VISIBLE
+            val viewBottomLine = findViewById<View>(R.id.viewBottomLine) ?: return
+            viewBottomLine.visibility = View.VISIBLE
+            frAds.visibility = View.VISIBLE
+            val shimmerView =
+                LayoutInflater.from(this)
+                    .inflate(R.layout.ads_banner_shimmer, null) as ShimmerFrameLayout
+            shimmerView.startShimmer()
+            frAds.removeAllViews()
+            frAds.addView(shimmerView)
+
+            val adView = AdView(this)
+            adView.adUnitId = idBannerAd
+            frAds.addView(adView)
+            val adSize: AdSize = getAdSize(this)
+            val adHeight = adSize.height
+            shimmerView.layoutParams.height =
+                (adHeight * Resources.getSystem().displayMetrics.density + 0.5f).toInt()
+            adView.setAdSize(adSize)
+            adView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+
+            adView.adListener = object : AdListener() {
+                override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                    super.onAdFailedToLoad(loadAdError)
+                    shimmerView.stopShimmer()
+                    frAds.removeAllViews()
+                    frAds.visibility = View.GONE
+
+                }
+
+                override fun onAdLoaded() {
+                    super.onAdLoaded()
+                    shimmerView.stopShimmer()
+                    shimmerView.visibility = View.GONE
+                }
+
+                override fun onAdClicked() {
+                    super.onAdClicked()
+
+                }
+            }
+            adView.loadAd(AdRequest.Builder().build())
+
+        } catch (e: Exception) {
+
+        }
+    }
+    // ---------------------------------------- End load and show banner --------------------------------------------
 
 }

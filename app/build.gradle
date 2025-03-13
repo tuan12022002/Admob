@@ -30,6 +30,22 @@ android {
     kotlinOptions {
         jvmTarget = '11'
     }
+    buildFeatures {
+        dataBinding true
+        viewBinding true
+    }
+
+    bundle {
+        language {
+            enableSplit = false
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
+        }
+    }
 }
 
 dependencies {

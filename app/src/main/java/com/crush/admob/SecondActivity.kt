@@ -4,10 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.library.admob.activity.AdmobActivity
+import com.library.admob.utlis.Constant
 
 class SecondActivity : AdmobActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,5 +23,11 @@ class SecondActivity : AdmobActivity() {
             startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
+
+//        loadNative(
+//            idNativeAd = Constant.ID_NATIVE_AD,
+//            nativeLayout = R.layout.ads_native_large,
+//            nativeShimmer = R.layout.ads_native_large_shimmer
+//        )
     }
 }
