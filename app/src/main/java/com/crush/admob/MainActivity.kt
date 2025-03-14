@@ -3,6 +3,7 @@ package com.crush.admob
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResult
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.crush.admob.databinding.ActivityMainBinding
@@ -26,24 +27,27 @@ class MainActivity : AdmobActivity() {
 
         binding?.btnInter?.setOnClickListener {
             showInterstitialAd(idInterstitialAd = Constant.ID_INTERSTITIAL_AD) {
-                startActivity(Intent(this, SecondActivity::class.java))
+                launcherActivity.launch(Intent(this, SecondActivity::class.java))
             }
         }
 
         binding?.btnAppOpen?.setOnClickListener {
             showAppOpenAd(idAppOpenAd = Constant.ID_APP_OPEN_AD) {
-                startActivity(Intent(this, SecondActivity::class.java))
+                launcherActivity.launch(Intent(this, SecondActivity::class.java))
             }
         }
 
         binding?.btnReward?.setOnClickListener {
             showRewardedAd(idRewardAd = Constant.ID_REWARD_AD) {
-                startActivity(Intent(this, SecondActivity::class.java))
+                launcherActivity.launch(Intent(this, SecondActivity::class.java))
             }
         }
 
+        loadBanner()
+    }
 
-
+    override fun onActivityResult(activityResult: ActivityResult?){
+        super.onActivityResult(activityResult)
         loadBanner()
     }
 

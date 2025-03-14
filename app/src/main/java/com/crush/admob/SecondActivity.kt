@@ -20,7 +20,6 @@ class SecondActivity : AdmobActivity() {
             insets
         }
         findViewById<View>(R.id.tvTest).setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
             finish()
         }
 
