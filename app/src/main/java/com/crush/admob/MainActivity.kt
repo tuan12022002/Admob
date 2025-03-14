@@ -9,7 +9,6 @@ import androidx.core.view.WindowInsetsCompat
 import com.crush.admob.databinding.ActivityMainBinding
 import com.google.android.gms.ads.MobileAds
 import com.library.admob.activity.AdmobActivity
-import com.library.admob.utlis.Constant
 
 class MainActivity : AdmobActivity() {
     private var binding: ActivityMainBinding? = null
@@ -43,12 +42,12 @@ class MainActivity : AdmobActivity() {
             }
         }
 
-        loadBanner(idBannerAd = BuildConfig.BANNER)
+        loadBannerOfCollapsible(idBannerAd = BuildConfig.BANNER, false)
     }
 
-    override fun onActivityResult(activityResult: ActivityResult?){
+    override fun onActivityResult(activityResult: ActivityResult?) {
         super.onActivityResult(activityResult)
-        loadBanner(idBannerAd = BuildConfig.BANNER)
+        loadBannerOfCollapsible(idBannerAd = BuildConfig.COLLAPSIBLE, true)
     }
 
     override fun onBackPressedCallback() {

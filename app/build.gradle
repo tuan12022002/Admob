@@ -52,7 +52,7 @@ android {
     flavorDimensions "environment"
     productFlavors {
         develop {
-            dimension "environment"
+            //dimension "environment"
             buildConfigField "String", "INTER", "\"ca-app-pub-3940256099942544/1033173712\""
             buildConfigField "String", "REWARD", "\"ca-app-pub-3940256099942544/5224354917\""
             buildConfigField "String", "APP_OPEN", "\"ca-app-pub-3940256099942544/9257395921\""
@@ -61,7 +61,7 @@ android {
             buildConfigField "String", "COLLAPSIBLE", "\"ca-app-pub-3940256099942544/2014213617\""
         }
         production {
-            dimension "environment"
+            //dimension "environment"
             buildConfigField "String", "INTER", "\"ca-app-pub-3940256099942544/1033173712\""
             buildConfigField "String", "REWARD", "\"ca-app-pub-3940256099942544/5224354917\""
             buildConfigField "String", "APP_OPEN", "\"ca-app-pub-3940256099942544/9257395921\""

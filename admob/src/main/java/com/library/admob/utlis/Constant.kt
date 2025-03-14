@@ -19,6 +19,8 @@ object Constant {
 
     const val ID_BANNER_AD = "ca-app-pub-3940256099942544/6300978111"
 
+    const val ID_COLLAPSIBLE_AD = "ca-app-pub-3940256099942544/2014213617"
+
     // Số lần tối đa thử tải quảng cáo trước khi dừng quá trình tải.
     const val MAX_LOADING_ADS = 3
 

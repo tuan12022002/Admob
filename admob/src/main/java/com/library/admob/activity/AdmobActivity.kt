@@ -2,14 +2,15 @@ package com.library.admob.activity
 
 import android.app.Activity
 import android.content.res.Resources
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.DisplayMetrics
 import android.util.Log
-import android.view.Display
 import android.view.LayoutInflater
 import android.view.View
+import android.view.WindowInsets
 import android.widget.Button
 import android.widget.FrameLayout
 import android.widget.ImageView
@@ -19,6 +20,7 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.facebook.shimmer.ShimmerFrameLayout
+import com.google.ads.mediation.admob.AdMobAdapter
 import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdListener
 import com.google.android.gms.ads.AdLoader
@@ -118,6 +120,8 @@ open class AdmobActivity : AppCompatActivity() {
      */
     @Volatile
     private var idAppOpenAd = Constant.ID_APP_OPEN_AD
+
+    var adView: AdView? = null
 
     val launcherActivity =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { activityResult ->
@@ -693,105 +697,243 @@ open class AdmobActivity : AppCompatActivity() {
         loadingView = null
         interstitialAd = null
         handleLoadingView = null
+        adView?.destroy()
+        adView = null
         super.onDestroy()
-    }
-
-    // ---------------------------------------- Start load and show native ----------------------------------------
-
-    fun onNativeAdLoaded() {
-
-    }
-
-    fun onNativeAdFailedToLoad(adError: LoadAdError) {
-
-    }
-
-    fun onNativeAdOpened() {
-
-    }
-
-    fun onNativeAdClicked() {
-
-    }
-
-    fun onNativeAdImpression() {
-
-    }
-
-    fun onNativeAdClosed() {
-
     }
 
 
     /**
-     * Hàm loadNative hiển thị hiệu ứng shimmer, tải quảng cáo native và bind dữ liệu vào view.
+     * Callback cho Banner Ad
+     */
+    open fun onBannerAdLoaded() {
+        // Xử lý khi banner ad được load thành công
+    }
+
+    open fun onBannerAdFailedToLoad(adError: LoadAdError) {
+        // Xử lý khi banner ad load thất bại, ví dụ: log lỗi hoặc hiển thị thông báo
+    }
+
+    open fun onBannerAdClicked() {
+        // Xử lý khi người dùng click vào banner ad
+    }
+
+    open fun onBannerAdOpened() {
+        // Xử lý khi banner ad được mở rộng
+    }
+
+    open fun onBannerAdImpression() {
+        // Xử lý khi banner ad ghi nhận 1 lượt hiển thị (impression)
+    }
+
+    open fun onBannerAdClosed() {
+        // Xử lý khi banner ad bị đóng
+    }
+
+    /**
+     * Tính toán kích thước quảng cáo theo chiều rộng màn hình (adaptive banner).
+     * Dùng cho Android 11 trở lên và các phiên bản cũ hơn.
+     */
+    @Suppress("DEPRECATION")
+    private fun getAdSize(activity: Activity): AdSize {
+        val adWidth: Int = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            // Dành cho Android 11 (API 30) trở lên
+            val windowMetrics = activity.windowManager.currentWindowMetrics
+            // Lấy các insets của hệ thống (status bar, navigation bar, ...)
+            val insets =
+                windowMetrics.windowInsets.getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
+            // Tính chiều rộng khả dụng của màn hình
+            val widthPixels = windowMetrics.bounds.width() - insets.left - insets.right
+            (widthPixels / activity.resources.displayMetrics.density).toInt()
+        } else {
+            // Dành cho các phiên bản Android cũ hơn
+            val displayMetrics = DisplayMetrics()
+            activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
+            (displayMetrics.widthPixels / displayMetrics.density).toInt()
+        }
+        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth)
+    }
+
+    /**
+     * Load banner ad dạng collapsible với hiệu ứng shimmer.
+     *
+     * @param idBannerAd Mã quảng cáo banner.
+     * @param isCollapsible Xác định banner có dạng collapsible hay không.
+     */
+    fun loadBannerOfCollapsible(
+        idBannerAd: String = Constant.ID_BANNER_AD,
+        isCollapsible: Boolean = false
+    ) {
+        try {
+            adView?.destroy()
+            adView = null
+            // Lấy container quảng cáo và các view đường viền, trả về nếu không tìm thấy
+            val frAds = findViewById<FrameLayout>(R.id.frAds) ?: return
+            val viewTopLine = findViewById<View>(R.id.viewTopLine) ?: return
+            val viewBottomLine = findViewById<View>(R.id.viewBottomLine) ?: return
+
+            // Hiển thị container và các đường viền
+            listOf(frAds, viewTopLine, viewBottomLine).forEach { it.visibility = View.VISIBLE }
+
+            // Inflate view hiệu ứng shimmer khi đang tải quảng cáo
+            val shimmerView = LayoutInflater.from(this)
+                .inflate(R.layout.ads_banner_shimmer, null) as ShimmerFrameLayout
+            shimmerView.startShimmer()
+            frAds.removeAllViews()
+            frAds.addView(shimmerView)
+
+            // Kiểm tra điều kiện từ remote config để load banner ad
+            if (Utils.isReadyLoadAndShow(this, Constant.REMOTE_CONFIG_BANNER)) {
+                // Tạo AdView và cấu hình
+                adView = AdView(this).apply {
+                    adUnitId = idBannerAd
+                    setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+                }
+                frAds.addView(adView)
+
+                // Tính toán kích thước quảng cáo và cập nhật chiều cao cho shimmer
+                val adSize = getAdSize(this)
+                shimmerView.layoutParams.height =
+                    (adSize.height * Resources.getSystem().displayMetrics.density + 0.5f).toInt()
+                adView?.setAdSize(adSize)
+
+                // Cấu hình callback cho banner ad
+                adView?.adListener = object : AdListener() {
+                    override fun onAdLoaded() {
+                        super.onAdLoaded()
+                        shimmerView.stopShimmer()
+                        shimmerView.visibility = View.GONE
+                        onBannerAdLoaded()  // Gọi callback khi load thành công
+                    }
+
+                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
+                        super.onAdFailedToLoad(loadAdError)
+                        shimmerView.stopShimmer()
+                        hideBanner(frAds, viewTopLine, viewBottomLine)
+                        onBannerAdFailedToLoad(loadAdError)  // Gọi callback khi load thất bại
+                    }
+
+                    override fun onAdClicked() {
+                        super.onAdClicked()
+                        onBannerAdClicked()  // Gọi callback khi quảng cáo được click
+                    }
+
+                    override fun onAdOpened() {
+                        super.onAdOpened()
+                        onBannerAdOpened()  // Gọi callback khi quảng cáo mở rộng
+                    }
+
+                    override fun onAdImpression() {
+                        super.onAdImpression()
+                        onBannerAdImpression()  // Gọi callback khi ghi nhận impression
+                    }
+
+                    override fun onAdClosed() {
+                        super.onAdClosed()
+                        onBannerAdClosed()  // Gọi callback khi quảng cáo đóng
+                    }
+                }
+
+                // Xây dựng AdRequest, thêm extra nếu banner dạng collapsible
+                val adRequest = if (isCollapsible) {
+                    val extras = Bundle().apply { putString("collapsible", "bottom") }
+                    AdRequest.Builder()
+                        .addNetworkExtrasBundle(AdMobAdapter::class.java, extras)
+                        .build()
+                } else {
+                    AdRequest.Builder().build()
+                }
+                adView?.loadAd(adRequest)
+            } else {
+                // Nếu điều kiện load không thỏa mãn thì dừng shimmer và ẩn container
+                shimmerView.stopShimmer()
+                hideBanner(frAds, viewTopLine, viewBottomLine)
+            }
+        } catch (e: Exception) {
+            // Xử lý exception (có thể log lỗi tại đây)
+        }
+    }
+
+    /**
+     * Hàm ẩn container quảng cáo và các đường viền.
+     */
+    private fun hideBanner(frAds: FrameLayout, viewTopLine: View, viewBottomLine: View) {
+        frAds.removeAllViews()
+        listOf(frAds, viewTopLine, viewBottomLine).forEach { it.visibility = View.GONE }
+    }
+
+    /**
+     * Load native ad với hiệu ứng shimmer, sau đó bind dữ liệu quảng cáo vào view.
+     *
+     * @param idNativeAd Mã quảng cáo native.
+     * @param nativeLayout Layout resource cho NativeAdView.
+     * @param nativeShimmer Layout resource cho hiệu ứng shimmer.
      */
     fun loadNative(idNativeAd: String, nativeLayout: Int, nativeShimmer: Int) {
-        // Lấy container chứa quảng cáo, đảm bảo không null
+        // Lấy container chứa quảng cáo, trả về nếu không tìm thấy
         val frAds = findViewById<FrameLayout>(R.id.frAds) ?: return
         frAds.visibility = View.VISIBLE
-        val viewLine = findViewById<View>(R.id.viewTopLine) ?: return
-        viewLine.visibility = View.GONE
-        val viewBottomLine = findViewById<View>(R.id.viewBottomLine) ?: return
-        viewBottomLine.visibility = View.GONE
-        // Inflate view hiệu ứng shimmer khi đang tải quảng cáo
-        val shimmerView =
-            LayoutInflater.from(this).inflate(nativeShimmer, null) as ShimmerFrameLayout
+        // Ẩn các đường viền khi hiển thị native ad
+        findViewById<View>(R.id.viewTopLine)?.visibility = View.GONE
+        findViewById<View>(R.id.viewBottomLine)?.visibility = View.GONE
+
+        // Inflate view shimmer để hiển thị hiệu ứng khi tải quảng cáo
+        val shimmerView = LayoutInflater.from(this)
+            .inflate(nativeShimmer, null) as ShimmerFrameLayout
         shimmerView.startShimmer()
         frAds.removeAllViews()
         frAds.addView(shimmerView)
 
+        // Kiểm tra điều kiện từ remote config để load native ad
         if (Utils.isReadyLoadAndShow(this, Constant.REMOTE_CONFIG_NATIVE)) {
-            // Tạo AdLoader để tải quảng cáo native
+            // Tạo AdLoader để tải native ad
             val adLoader = AdLoader.Builder(this, idNativeAd)
                 .forNativeAd { nativeAd ->
-                    // Kiểm tra xem Activity có còn hợp lệ để cập nhật UI không
+                    // Kiểm tra activity còn hợp lệ để cập nhật UI
                     if (isFinishing || isDestroyed) {
                         nativeAd.destroy()
                         return@forNativeAd
                     }
-                    // Inflate layout native ad, đảm bảo ép kiểu thành NativeAdView
-                    val adView =
-                        LayoutInflater.from(this).inflate(nativeLayout, null) as? NativeAdView
+                    // Inflate layout native ad và ép kiểu về NativeAdView
+                    val adView = LayoutInflater.from(this)
+                        .inflate(nativeLayout, null) as? NativeAdView
                     if (adView == null) {
                         nativeAd.destroy()
                         return@forNativeAd
                     }
-                    // Dừng hiệu ứng shimmer
+                    // Dừng hiệu ứng shimmer và cập nhật UI với NativeAdView
                     shimmerView.stopShimmer()
                     frAds.removeAllViews()
-                    // Thêm NativeAdView vào container
                     frAds.addView(adView)
-                    // Bind dữ liệu quảng cáo vào layout
+                    // Bind dữ liệu quảng cáo vào NativeAdView
                     bindNativeAdToView(nativeAd, adView)
                 }
                 .withAdListener(object : AdListener() {
                     override fun onAdLoaded() {
-                        onNativeAdLoaded()
+                        onNativeAdLoaded()  // Gọi callback native ad loaded
                     }
 
                     override fun onAdFailedToLoad(adError: LoadAdError) {
-                        onNativeAdFailedToLoad(adError)
-                        // Dừng hiệu ứng shimmer và ẩn container nếu không tải được quảng cáo
+                        onNativeAdFailedToLoad(adError)  // Gọi callback native ad failed
                         shimmerView.stopShimmer()
                         frAds.removeAllViews()
                         frAds.visibility = View.GONE
                     }
 
                     override fun onAdOpened() {
-                        onNativeAdOpened()
+                        onNativeAdOpened()  // Gọi callback native ad opened
                     }
 
                     override fun onAdClicked() {
-                        onNativeAdClicked()
+                        onNativeAdClicked()  // Gọi callback native ad clicked
                     }
 
                     override fun onAdImpression() {
-                        onNativeAdImpression()
+                        onNativeAdImpression()  // Gọi callback native ad impression
                     }
 
                     override fun onAdClosed() {
-                        onNativeAdClosed()
+                        onNativeAdClosed()  // Gọi callback native ad closed
                     }
                 })
                 .withNativeAdOptions(
@@ -801,22 +943,24 @@ open class AdmobActivity : AppCompatActivity() {
                 )
                 .build()
 
-            // Tải quảng cáo với AdRequest
+            // Load native ad với AdRequest
             adLoader.loadAd(AdRequest.Builder().build())
         } else {
+            // Nếu không thỏa mãn điều kiện load, dừng shimmer và ẩn container
             shimmerView.stopShimmer()
             frAds.removeAllViews()
             frAds.visibility = View.GONE
         }
-
-
     }
 
     /**
-     * Hàm bindNativeAdToView ánh xạ dữ liệu của NativeAd vào các view trong NativeAdView.
+     * Bind dữ liệu của NativeAd vào NativeAdView.
+     *
+     * @param nativeAd Đối tượng chứa dữ liệu quảng cáo.
+     * @param nativeAdView View hiển thị quảng cáo native.
      */
     private fun bindNativeAdToView(nativeAd: NativeAd, nativeAdView: NativeAdView) {
-        // Ánh xạ các view theo ID đã định nghĩa trong layout native_ad_layout.xml
+        // Ánh xạ các thành phần của native ad tới view tương ứng
         nativeAdView.mediaView = nativeAdView.findViewById(R.id.ad_media)
         nativeAdView.headlineView = nativeAdView.findViewById(R.id.ad_headline)
         nativeAdView.bodyView = nativeAdView.findViewById(R.id.ad_body)
@@ -824,30 +968,22 @@ open class AdmobActivity : AppCompatActivity() {
         nativeAdView.iconView = nativeAdView.findViewById(R.id.ad_app_icon)
         nativeAdView.advertiserView = nativeAdView.findViewById(R.id.ad_advertiser)
 
-        // Cập nhật dữ liệu tiêu đề quảng cáo
+        // Cập nhật tiêu đề quảng cáo
         (nativeAdView.headlineView as? TextView)?.text = nativeAd.headline
 
-        // Cập nhật dữ liệu nội dung quảng cáo (body)
+        // Cập nhật nội dung quảng cáo, ẩn view nếu không có dữ liệu
         (nativeAdView.bodyView as? TextView)?.apply {
-            if (nativeAd.body.isNullOrEmpty()) {
-                visibility = View.INVISIBLE
-            } else {
-                visibility = View.VISIBLE
-                text = nativeAd.body
-            }
+            text = nativeAd.body ?: ""
+            visibility = if (nativeAd.body.isNullOrEmpty()) View.INVISIBLE else View.VISIBLE
         }
 
-        // Cập nhật dữ liệu nút Call to Action
+        // Cập nhật nút Call-to-Action, ẩn nếu không có dữ liệu
         (nativeAdView.callToActionView as? Button)?.apply {
-            if (nativeAd.callToAction.isNullOrEmpty()) {
-                visibility = View.INVISIBLE
-            } else {
-                visibility = View.VISIBLE
-                text = nativeAd.callToAction
-            }
+            text = nativeAd.callToAction ?: ""
+            visibility = if (nativeAd.callToAction.isNullOrEmpty()) View.INVISIBLE else View.VISIBLE
         }
 
-        // Cập nhật hình ảnh icon
+        // Cập nhật icon quảng cáo, ẩn nếu không có
         (nativeAdView.iconView as? ImageView)?.apply {
             if (nativeAd.icon == null) {
                 visibility = View.GONE
@@ -857,93 +993,42 @@ open class AdmobActivity : AppCompatActivity() {
             }
         }
 
-        // Cập nhật dữ liệu nhà quảng cáo (advertiser)
+        // Cập nhật thông tin advertiser, ẩn nếu không có dữ liệu
         (nativeAdView.advertiserView as? TextView)?.apply {
-            if (nativeAd.advertiser.isNullOrEmpty()) {
-                visibility = View.INVISIBLE
-            } else {
-                visibility = View.VISIBLE
-                text = nativeAd.advertiser
-            }
+            text = nativeAd.advertiser ?: ""
+            visibility = if (nativeAd.advertiser.isNullOrEmpty()) View.INVISIBLE else View.VISIBLE
         }
 
-        // Cuối cùng, đăng ký NativeAd vào NativeAdView
+        // Đăng ký NativeAd với NativeAdView
         nativeAdView.setNativeAd(nativeAd)
     }
 
-    // ---------------------------------------- End load and show native ----------------------------------------
-
-    // ---------------------------------------- Start load and show banner ----------------------------------------
-
-    private fun getAdSize(activity: Activity): AdSize {
-        val display: Display = activity.windowManager.defaultDisplay
-        val outMetrics = DisplayMetrics()
-        display.getMetrics(outMetrics)
-
-        val widthPixels: Float = outMetrics.widthPixels.toFloat()
-        val density: Float = outMetrics.density
-
-        val adWidth: Int = (widthPixels / density).toInt()
-        return AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(activity, adWidth)
+    /**
+     * Các callback cho Native Ad (có thể tùy chỉnh xử lý tương ứng).
+     */
+    open fun onNativeAdLoaded() {
+        // Xử lý khi native ad load thành công
     }
 
-    fun loadBanner(idBannerAd: String = Constant.ID_BANNER_AD) {
-        try {
-            val frAds = findViewById<FrameLayout>(R.id.frAds) ?: return
-            val viewTopLine = findViewById<View>(R.id.viewTopLine) ?: return
-            viewTopLine.visibility = View.VISIBLE
-            val viewBottomLine = findViewById<View>(R.id.viewBottomLine) ?: return
-            viewBottomLine.visibility = View.VISIBLE
-            frAds.visibility = View.VISIBLE
-            val shimmerView =
-                LayoutInflater.from(this)
-                    .inflate(R.layout.ads_banner_shimmer, null) as ShimmerFrameLayout
-            shimmerView.startShimmer()
-            frAds.removeAllViews()
-            frAds.addView(shimmerView)
-
-            if (Utils.isReadyLoadAndShow(this, Constant.REMOTE_CONFIG_BANNER)) {
-                val adView = AdView(this)
-                adView.adUnitId = idBannerAd
-                frAds.addView(adView)
-                val adSize: AdSize = getAdSize(this)
-                val adHeight = adSize.height
-                shimmerView.layoutParams.height =
-                    (adHeight * Resources.getSystem().displayMetrics.density + 0.5f).toInt()
-                adView.setAdSize(adSize)
-                adView.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
-
-                adView.adListener = object : AdListener() {
-                    override fun onAdFailedToLoad(loadAdError: LoadAdError) {
-                        super.onAdFailedToLoad(loadAdError)
-                        shimmerView.stopShimmer()
-                        frAds.removeAllViews()
-                        frAds.visibility = View.GONE
-
-                    }
-
-                    override fun onAdLoaded() {
-                        super.onAdLoaded()
-                        shimmerView.stopShimmer()
-                        shimmerView.visibility = View.GONE
-                    }
-
-                    override fun onAdClicked() {
-                        super.onAdClicked()
-
-                    }
-                }
-                adView.loadAd(AdRequest.Builder().build())
-            }else{
-                shimmerView.stopShimmer()
-                frAds.removeAllViews()
-                frAds.visibility = View.GONE
-            }
-
-        } catch (e: Exception) {
-
-        }
+    open fun onNativeAdFailedToLoad(adError: LoadAdError) {
+        // Xử lý khi native ad load thất bại
     }
-    // ---------------------------------------- End load and show banner --------------------------------------------
+
+    open fun onNativeAdOpened() {
+        // Xử lý khi native ad được mở rộng
+    }
+
+    open fun onNativeAdClicked() {
+        // Xử lý khi người dùng click vào native ad
+    }
+
+    open fun onNativeAdImpression() {
+        // Xử lý khi native ad ghi nhận 1 lượt hiển thị (impression)
+    }
+
+    open fun onNativeAdClosed() {
+        // Xử lý khi native ad bị đóng
+    }
+
 
 }
