@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<defaults>
+  <entry>
+    <key>inter</key>
+    <value>false</value>
+  </entry>
+  <entry>
+    <key>native</key>
+    <value>true</value>
+  </entry>
+  <entry>
+    <key>banner</key>
+    <value>true</value>
+  </entry>
+  <entry>
+    <key>app_open</key>
+    <value>true</value>
+  </entry>
+  <entry>
+    <key>reward</key>
+    <value>true</value>
+  </entry>
+  <entry>
+    <key>collapsible</key>
+    <value>true</value>
+  </entry>
+</defaults>

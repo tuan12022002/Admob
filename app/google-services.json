@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "94005396885",
+    "project_id": "admob-7bb46",
+    "storage_bucket": "admob-7bb46.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:94005396885:android:68ffdc0df5c1879599a29c",
+        "android_client_info": {
+          "package_name": "com.crush.admob"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzdohXmD_PiRadOx4lS6wiHKPs9cfUM0w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

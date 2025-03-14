@@ -6,7 +6,6 @@ import android.os.Bundle
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import com.google.android.gms.ads.MobileAds
 import com.library.admob.Admob
 import com.library.admob.activity.AdmobActivity
 import java.lang.ref.WeakReference
@@ -33,7 +32,7 @@ open class AdmobApplication : Application(),
      */
     override fun onCreate() {
         super<Application>.onCreate()
-        MobileAds.initialize(this) {}  // Khởi tạo MobileAds SDK
+        // Khởi tạo MobileAds SDK
         registerActivityLifecycleCallbacks(this)  // Đăng ký lắng nghe vòng đời của Activity
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)  // Đăng ký observer cho lifecycle của ứng dụng
     }

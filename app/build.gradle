@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id "com.google.gms.google-services"
+    id "com.google.firebase.crashlytics"
 }
 
 android {
@@ -64,7 +66,10 @@ dependencies {
     implementation project(path: ':admob')
     // Shimmer
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
-    // Shimmer
-    //implementation 'io.supercharge:shimmerlayout:2.1.0'
+    // firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.10.0"))
+    implementation 'com.google.firebase:firebase-crashlytics'
+    implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-messaging:24.1.0'
 
 }

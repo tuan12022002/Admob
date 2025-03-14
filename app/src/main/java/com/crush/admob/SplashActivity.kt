@@ -2,32 +2,34 @@ package com.crush.admob
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.lifecycle.lifecycleScope
+import com.library.admob.Admob
 import com.library.admob.activity.AdmobActivity
-import com.library.admob.utlis.Constant
+import com.library.admob.utlis.FirebaseUtils
+import kotlinx.coroutines.launch
 
-class SecondActivity : AdmobActivity() {
+class SplashActivity : AdmobActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_second)
+        setContentView(R.layout.activity_splash)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        findViewById<View>(R.id.tvTest).setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+        Admob.disableAppResumeWithActivity(this::class.java)
+        lifecycleScope.launch {
+            FirebaseUtils.initializeApp(this@SplashActivity,  R.xml.remote_config_defaults)
+            showInterstitialAd() {
+                startActivity(Intent(this@SplashActivity, MainActivity::class.java))
+            }
         }
-
-        loadNative(
-            idNativeAd = Constant.ID_NATIVE_AD,
-            nativeLayout = R.layout.ads_native_large,
-            nativeShimmer = R.layout.ads_native_large_shimmer
-        )
     }
+
 }

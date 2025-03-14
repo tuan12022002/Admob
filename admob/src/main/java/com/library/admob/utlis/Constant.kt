@@ -21,4 +21,12 @@ object Constant {
 
     // Số lần tối đa thử tải quảng cáo trước khi dừng quá trình tải.
     const val MAX_LOADING_ADS = 3
+
+    const val REMOTE_CONFIG = "remote_config"
+    const val REMOTE_CONFIG_INTER = "inter"
+    const val REMOTE_CONFIG_NATIVE = "native"
+    const val REMOTE_CONFIG_BANNER = "banner"
+    const val REMOTE_CONFIG_APP_OPEN = "app_open"
+    const val REMOTE_CONFIG_REWARD = "reward"
+    const val REMOTE_CONFIG_COLLAPSIBLE = "collapsible"
 }

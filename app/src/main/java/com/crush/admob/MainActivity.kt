@@ -7,8 +7,8 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.crush.admob.databinding.ActivityMainBinding
 import com.google.android.gms.ads.MobileAds
-import com.library.admob.Admob
 import com.library.admob.activity.AdmobActivity
+import com.library.admob.utlis.Constant
 
 class MainActivity : AdmobActivity() {
     private var binding: ActivityMainBinding? = null
@@ -25,26 +25,31 @@ class MainActivity : AdmobActivity() {
         MobileAds.initialize(this)
 
         binding?.btnInter?.setOnClickListener {
-            showInterstitialAd(isShowAds = true) {
+            showInterstitialAd(idInterstitialAd = Constant.ID_INTERSTITIAL_AD) {
                 startActivity(Intent(this, SecondActivity::class.java))
             }
         }
 
         binding?.btnAppOpen?.setOnClickListener {
-            showAppOpenAd(isShowAds = true) {
+            showAppOpenAd(idAppOpenAd = Constant.ID_APP_OPEN_AD) {
                 startActivity(Intent(this, SecondActivity::class.java))
             }
         }
 
         binding?.btnReward?.setOnClickListener {
-            showRewardedAd(isShowAds = true) {
+            showRewardedAd(idRewardAd = Constant.ID_REWARD_AD) {
                 startActivity(Intent(this, SecondActivity::class.java))
             }
         }
 
-        Admob.disableAppResumeWithActivity(this::class.java)
+
 
         loadBanner()
+    }
+
+    override fun onBackPressedCallback() {
+        super.onBackPressedCallback()
+        finish()
     }
 
 }
