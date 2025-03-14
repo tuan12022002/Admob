@@ -26,7 +26,7 @@ class SplashActivity : AdmobActivity() {
         Admob.disableAppResumeWithActivity(this::class.java)
         lifecycleScope.launch {
             FirebaseUtils.initializeApp(this@SplashActivity,  R.xml.remote_config_defaults)
-            showInterstitialAd() {
+            showInterstitialAd(BuildConfig.INTER) {
                 startActivity(Intent(this@SplashActivity, MainActivity::class.java))
             }
         }

@@ -26,29 +26,29 @@ class MainActivity : AdmobActivity() {
         MobileAds.initialize(this)
 
         binding?.btnInter?.setOnClickListener {
-            showInterstitialAd(idInterstitialAd = Constant.ID_INTERSTITIAL_AD) {
+            showInterstitialAd(idInterstitialAd = BuildConfig.INTER) {
                 launcherActivity.launch(Intent(this, SecondActivity::class.java))
             }
         }
 
         binding?.btnAppOpen?.setOnClickListener {
-            showAppOpenAd(idAppOpenAd = Constant.ID_APP_OPEN_AD) {
+            showAppOpenAd(idAppOpenAd = BuildConfig.APP_OPEN) {
                 launcherActivity.launch(Intent(this, SecondActivity::class.java))
             }
         }
 
         binding?.btnReward?.setOnClickListener {
-            showRewardedAd(idRewardAd = Constant.ID_REWARD_AD) {
+            showRewardedAd(idRewardAd = BuildConfig.REWARD) {
                 launcherActivity.launch(Intent(this, SecondActivity::class.java))
             }
         }
 
-        loadBanner()
+        loadBanner(idBannerAd = BuildConfig.BANNER)
     }
 
     override fun onActivityResult(activityResult: ActivityResult?){
         super.onActivityResult(activityResult)
-        loadBanner()
+        loadBanner(idBannerAd = BuildConfig.BANNER)
     }
 
     override fun onBackPressedCallback() {

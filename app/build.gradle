@@ -33,7 +33,7 @@ android {
         jvmTarget = '11'
     }
     buildFeatures {
-        dataBinding true
+        buildConfig true
         viewBinding true
     }
 
@@ -46,6 +46,28 @@ android {
         }
         abi {
             enableSplit = true
+        }
+    }
+
+    flavorDimensions "environment"
+    productFlavors {
+        develop {
+            dimension "environment"
+            buildConfigField "String", "INTER", "\"ca-app-pub-3940256099942544/1033173712\""
+            buildConfigField "String", "REWARD", "\"ca-app-pub-3940256099942544/5224354917\""
+            buildConfigField "String", "APP_OPEN", "\"ca-app-pub-3940256099942544/9257395921\""
+            buildConfigField "String", "NATIVE", "\"ca-app-pub-3940256099942544/2247696110\""
+            buildConfigField "String", "BANNER", "\"ca-app-pub-3940256099942544/6300978111\""
+            buildConfigField "String", "COLLAPSIBLE", "\"ca-app-pub-3940256099942544/2014213617\""
+        }
+        production {
+            dimension "environment"
+            buildConfigField "String", "INTER", "\"ca-app-pub-3940256099942544/1033173712\""
+            buildConfigField "String", "REWARD", "\"ca-app-pub-3940256099942544/5224354917\""
+            buildConfigField "String", "APP_OPEN", "\"ca-app-pub-3940256099942544/9257395921\""
+            buildConfigField "String", "NATIVE", "\"ca-app-pub-3940256099942544/2247696110\""
+            buildConfigField "String", "BANNER", "\"ca-app-pub-3940256099942544/6300978111\""
+            buildConfigField "String", "COLLAPSIBLE", "\"ca-app-pub-3940256099942544/2014213617\""
         }
     }
 }

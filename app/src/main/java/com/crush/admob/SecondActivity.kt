@@ -24,7 +24,7 @@ class SecondActivity : AdmobActivity() {
         }
 
         loadNative(
-            idNativeAd = Constant.ID_NATIVE_AD,
+            idNativeAd = BuildConfig.NATIVE,
             nativeLayout = R.layout.ads_native_large,
             nativeShimmer = R.layout.ads_native_large_shimmer
         )
