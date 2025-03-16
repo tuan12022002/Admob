@@ -22,9 +22,6 @@ class AdmobView @JvmOverloads constructor(
 ) : ConstraintLayout(context, attrs, defStyleAttr) {
 
     init {
-        // Inflate layout từ file R.layout.admob_loading và thêm vào AdmobView hiện tại.
-        inflate(context, R.layout.admob_loading, this)
-
         // Thêm một đường line kích thước 2dp ngay duới frAds
         val lineBottomView = View(context).apply {
             id = R.id.viewBottomLine
@@ -35,6 +32,7 @@ class AdmobView @JvmOverloads constructor(
                     startToStart = LayoutParams.PARENT_ID
                     endToEnd = LayoutParams.PARENT_ID
                 }
+            elevation = 0f
         }
         lineBottomView.visibility = View.GONE
         addView(lineBottomView)
@@ -48,6 +46,7 @@ class AdmobView @JvmOverloads constructor(
                     startToStart = LayoutParams.PARENT_ID
                     endToEnd = LayoutParams.PARENT_ID
                 }
+            elevation = 0f
         }
         addView(frAds)
 
@@ -61,9 +60,13 @@ class AdmobView @JvmOverloads constructor(
                     startToStart = LayoutParams.PARENT_ID
                     endToEnd = LayoutParams.PARENT_ID
                 }
+            elevation = 0f
         }
         lineTopView.visibility = View.GONE
         addView(lineTopView)
+
+        // Inflate layout từ file R.layout.admob_loading và thêm vào AdmobView hiện tại.
+        inflate(context, R.layout.admob_loading, this)
     }
 }
 

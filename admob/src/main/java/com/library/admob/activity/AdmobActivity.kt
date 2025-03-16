@@ -121,7 +121,7 @@ open class AdmobActivity : AppCompatActivity() {
     @Volatile
     private var idAppOpenAd = Constant.ID_APP_OPEN_AD
 
-    var adView: AdView? = null
+    private var adView: AdView? = null
 
     val launcherActivity =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { activityResult ->

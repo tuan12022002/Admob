@@ -42,7 +42,7 @@ class MainActivity : AdmobActivity() {
             }
         }
 
-        loadBannerOfCollapsible(idBannerAd = BuildConfig.BANNER, false)
+        loadBannerOfCollapsible(idBannerAd = BuildConfig.COLLAPSIBLE, true)
     }
 
     override fun onActivityResult(activityResult: ActivityResult?) {

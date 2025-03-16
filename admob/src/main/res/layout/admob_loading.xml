@@ -37,8 +37,9 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
+                android:textColor="#4A5057"
                 android:text="@string/loading_ads"
-                android:textSize="15sp" />
+                android:textSize="12sp" />
         </androidx.appcompat.widget.LinearLayoutCompat>
     </com.google.android.material.card.MaterialCardView>
 
